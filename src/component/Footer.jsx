@@ -72,11 +72,19 @@ const Footer = () => {
             Gandhi Ward, Manohar Chowk, Amgaon Road, Near Pratap Lawn, In Front
             of Centure Bar, Gondia, Maharashtra – India
           </p>
-          <p className="text-sm mb-2">Email: maaanusaya5@gmail.com</p>
-          <p className="text-sm mb-4">Phone: +91 8766081543</p>
+          <a
+            href="https://mail.google.com/mail/?view=cm&to=maaanusaya5@gmail.com"
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm mb-2 text-gray-900 hover:underline"
+          >
+            Email: maaanusaya5@gmail.com
+          </a>
+          <br />
+          <a href="tel:+918766081543" className="text-sm mb-4">Phone: +91 8766081543</a>
 
           <div className="flex gap-4 text-xl">
-            <a href="#" className="hover:text-blue-700">
+            <a href="#" className="hover:text-blue-900">
               <FaFacebook />
             </a>
             <a href="#" className="hover:text-sky-500">

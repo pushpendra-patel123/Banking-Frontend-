@@ -1,13 +1,14 @@
 // components/Carousel.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { useEffect } from "react";
-import { useState } from "react";
 import axios from "axios";
 
-const Crousal = () => {
+const Carousel = () => {
+  const [banners, setBanners] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const settings = {
     dots: true,
     arrows: false,
@@ -19,9 +20,6 @@ const Crousal = () => {
     slidesToScroll: 1,
   };
 
-  const [banners, setBanners] = useState([]);
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const fetchBanners = async () => {
       try {
@@ -29,7 +27,7 @@ const Crousal = () => {
           `${import.meta.env.VITE_API_URL}/api/admin/get`
         );
         if (res.data.success) {
-          setBanners(res.data.data.banners); // adjust key based on backend response
+          setBanners(res.data.data.banners);
         }
       } catch (err) {
         console.error("Error fetching banners:", err);
@@ -37,47 +35,32 @@ const Crousal = () => {
         setLoading(false);
       }
     };
-
     fetchBanners();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="w-full h-[158px] md:h-[400px] bg-gray-100 animate-pulse" />
+    );
+  }
+
+  if (!banners.length) return null;
+
   return (
-    <div className="bg-white h-[158px] w-full md:h-[400px] flex items-center justify-center">
-      <div className="w-full h-full">
-        <Slider {...settings}>{
-          banners.length > 0 && banners.map((item, index) => {
-            return (
-              <div key={index} className="h-[150px] w-full md:h-[400px]">
-                <img
-                  src={item.imageUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )
-          })
-
-
-        }
-
-          {/* <div className="h-[150px] w-full md:h-[400px]">
+    <div className="w-full h-[158px] md:h-[400px]">
+      <Slider {...settings}>
+        {banners.map((item, index) => (
+          <div key={index}>
             <img
-              src="/slider-2.jpg"
-              alt=""
-              className="w-full h-full object-cover"
+              src={item.imageUrl}
+              alt={`Banner ${index + 1}`}
+              className="w-full h-[158px] md:h-[400px] object-cover object-center"
             />
           </div>
-          <div className="h-[150px] w-full md:h-[400px]">
-            <img
-              src="/slider-3.jpg"
-              alt=""
-              className="w-full h-full object-cover"
-            />
-          </div> */}
-        </Slider>
-      </div>
+        ))}
+      </Slider>
     </div>
   );
 };
 
-export default Crousal;
+export default Carousel;

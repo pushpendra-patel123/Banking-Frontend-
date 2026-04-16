@@ -31,8 +31,8 @@ const Navbar = () => {
 
 
 
- const [schemes, setschemes] = useState([]);
- const [gallery, setGallery] = useState([]);
+  const [schemes, setschemes] = useState([]);
+  const [gallery, setGallery] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -55,7 +55,7 @@ const Navbar = () => {
     fetchSchmes();
   }, []);
 
-  
+
 
   const menuItems = [
     { name: "HOME", path: "/" },
@@ -70,6 +70,7 @@ const Navbar = () => {
     },
 
     { name: "CONTACT US", path: "/contact" },
+    { name: "CAREERS", path: "/careers" },
   ];
 
   const dropdownItems = {
@@ -128,9 +129,8 @@ const Navbar = () => {
             return (
               <li
                 key={idx}
-                className={`relative px-4 py-2 border-l border-yellow-300 hover:bg-yellow-200 ${
-                  isActive ? "text-red-600" : "text-gray-800"
-                }`}
+                className={`relative px-4 py-2 border-l border-yellow-300 hover:bg-yellow-200 ${isActive ? "text-red-600" : "text-gray-800"
+                  }`}
                 onMouseEnter={() => {
                   if (!isMobile && hasDropdown)
                     setDropdowns((prev) => ({ ...prev, [dropdownKey]: true }));
@@ -162,45 +162,44 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu Items (below logo when open) */}
-    {/* Mobile Menu Items (below logo when open) */}
-{mobileMenuOpen && (
-  <ul className="flex flex-col text-[13px] md:hidden font-semibold border-t border-yellow-300">
-    {menuItems.map((item, idx) => {
-      const hasDropdown = item.isDropdown;
-      const dropdownKey = item.key;
+      {/* Mobile Menu Items (below logo when open) */}
+      {mobileMenuOpen && (
+        <ul className="flex flex-col text-[13px] md:hidden font-semibold border-t border-yellow-300">
+          {menuItems.map((item, idx) => {
+            const hasDropdown = item.isDropdown;
+            const dropdownKey = item.key;
 
-      return (
-        <li
-          key={idx}
-          className="px-4 py-2 border-b border-yellow-300 text-gray-800"
-        >
-          {hasDropdown ? (
-            <>
-              {/* Toggleable parent */}
-              <div
-                className="flex justify-between items-center cursor-pointer"
-                onClick={() => toggleDropdown(dropdownKey)}
+            return (
+              <li
+                key={idx}
+                className="px-4 py-2 border-b border-yellow-300 text-gray-800"
               >
-                <span>{item.name}</span>
-                <FaChevronDown
-                  className={`text-[12px] transform transition-transform ${
-                    dropdowns[dropdownKey] ? "rotate-180" : ""
-                  }`}
-                />
-              </div>
+                {hasDropdown ? (
+                  <>
+                    {/* Toggleable parent */}
+                    <div
+                      className="flex justify-between items-center cursor-pointer"
+                      onClick={() => toggleDropdown(dropdownKey)}
+                    >
+                      <span>{item.name}</span>
+                      <FaChevronDown
+                        className={`text-[12px] transform transition-transform ${dropdowns[dropdownKey] ? "rotate-180" : ""
+                          }`}
+                      />
+                    </div>
 
-              {/* Dropdown items */}
-              {dropdowns[dropdownKey] &&
-                renderDropdown(dropdownItems[dropdownKey])}
-            </>
-          ) : (
-            <Link to={item.path}>{item.name}</Link>
-          )}
-        </li>
-      );
-    })}
-  </ul>
-)}
+                    {/* Dropdown items */}
+                    {dropdowns[dropdownKey] &&
+                      renderDropdown(dropdownItems[dropdownKey])}
+                  </>
+                ) : (
+                  <Link to={item.path}>{item.name}</Link>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
     </div>
   );
