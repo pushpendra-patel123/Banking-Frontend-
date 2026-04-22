@@ -14,12 +14,14 @@ import Careers from "./component/Careers";
 import ContactUs from "./component/ContactUs";
 import Faq from "./component/Faq";
 import ApplicationFormGrid from "./component/ApplicationFormGrid";
+import ScrollToTop from "./component/ScrollToTop";
 
 function App() {
   return (
     <div className="app">
       {" "}
       <Router>
+        <ScrollToTop />
         {/* <Header /> */}
         <Navbar />
         <Routes>

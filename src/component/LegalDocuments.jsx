@@ -48,13 +48,29 @@ const LegalDocuments = () => {
     }
   };
 
+  const handleDownloadFile = async (url, filename) => {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = filename || "file";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (err) {
+    console.error("Download failed", err);
+  }
+};
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 md:px-10">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg p-8 mb-10">
             <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8 text-blue-600" />
+              {/* <Shield className="w-8 h-8 text-blue-600" /> */}
               <div>
                 <h2 className="text-3xl font-bold text-gray-800">Legal Documents</h2>
                 <p className="text-lg text-gray-600 font-medium">कायदेशीर कागदपत्रे</p>
@@ -87,7 +103,7 @@ const LegalDocuments = () => {
           <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
           <div className="relative flex items-center gap-4">
             <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl">
-              <Shield className="w-10 h-10 text-text-red-600" />
+              {/* <Shield className="w-10 h-10 text-text-red-600" /> */}
             </div>
             <div>
               <h2 className="text-4xl font-bold text-black mb-1 drop-shadow-lg">Legal Documents</h2>
@@ -182,37 +198,44 @@ const LegalDocuments = () => {
                 )}
 
                 {/* Action Buttons */}
-                {doc.docs && (
-                  <div className="flex gap-3">
-                    {isPDF(doc.docs) && (
-                      <button
-                        onClick={() => handleDownload(doc.docs, doc.title)}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                      >
-                        <Download className="w-5 h-5" />
-                        Download
-                      </button>
-                    )}
-                    {isImage(doc.docs) && (
-                      <button
-                        onClick={() => window.open(doc.docs, '_blank')}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                      >
-                        <ExternalLink className="w-5 h-5" />
-                        View
-                      </button>
-                    )}
-                    {!isImage(doc.docs) && !isPDF(doc.docs) && (
-                      <button
-                        onClick={() => window.open(doc.docs, '_blank')}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                      >
-                        <ExternalLink className="w-5 h-5" />
-                        Open
-                      </button>
-                    )}
-                  </div>
-                )}
+             {doc.docs && (
+  <div className="flex gap-3">
+    
+    {/* PDF */}
+    {isPDF(doc.docs) && (
+      <button
+        onClick={() => handleDownloadFile(doc.docs, doc.title + ".pdf")}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+      >
+        <Download className="w-5 h-5" />
+        Download
+      </button>
+    )}
+
+    {/* IMAGE → NOW DOWNLOAD INSTEAD OF OPEN */}
+    {isImage(doc.docs) && (
+      <button
+        onClick={() => handleDownloadFile(doc.docs, doc.title + ".jpg")}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+      >
+        <Download className="w-5 h-5" />
+        Download
+      </button>
+    )}
+
+    {/* OTHER FILES → DOWNLOAD */}
+    {!isImage(doc.docs) && !isPDF(doc.docs) && (
+      <button
+        onClick={() => handleDownloadFile(doc.docs, doc.title)}
+        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-semibold rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+      >
+        <Download className="w-5 h-5" />
+        Download
+      </button>
+    )}
+
+  </div>
+)}
               </div>
             </div>
           ))}

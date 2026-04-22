@@ -22,86 +22,123 @@ function ContactUs() {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Validation rules
-  const validateForm = () => {
+  // ─── Validation Rules ───────────────────────────────────────────────────────
+
+  const validateField = (name, value) => {
+    const v = value.trim();
+
+    switch (name) {
+      case "name": {
+        if (!v) return "Full name is required.";
+        if (v.length < 2) return "Name must be at least 2 characters.";
+        if (v.length > 50) return "Name cannot exceed 50 characters.";
+        if (/\d/.test(v)) return "Name cannot contain numbers.";
+        if (!/^[a-zA-Z\u0900-\u097F\s]+$/.test(v))
+          return "Name can only contain letters and spaces.";
+        return "";
+      }
+
+      case "email": {
+        if (!v) return "Email address is required.";
+        // RFC-5322 inspired — rejects obvious typos like missing TLD
+        const emailRegex =
+          /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(v)) return "Please enter a valid email address (e.g. abc@example.com).";
+        if (v.length > 254) return "Email address is too long.";
+        return "";
+      }
+
+      case "phone": {
+        if (!v) return ""; // optional field
+        // Strip spaces, dashes, dots, parentheses for length check
+        const digits = v.replace(/[\s\-.()+]/g, "");
+        if (/[a-zA-Z]/.test(v)) return "Phone number cannot contain letters.";
+        if (!/^\d+$/.test(digits)) return "Phone number can only contain digits, spaces, +, - or ().";
+        // Support Indian numbers: 10 digits, optionally prefixed with +91 or 0
+        const normalized = digits.replace(/^(\+91|91|0)/, "");
+        if (normalized.length !== 10)
+          return "Enter a valid 10-digit mobile number (e.g. 9876543210).";
+        if (!/^[6-9]/.test(normalized))
+          return "Mobile number must start with 6, 7, 8 or 9.";
+        return "";
+      }
+
+      case "subject": {
+        if (!v) return "Subject is required.";
+        if (v.length < 3) return "Subject must be at least 3 characters.";
+        if (v.length > 100) return "Subject cannot exceed 100 characters.";
+        if (/^\d+$/.test(v)) return "Subject cannot be only numbers.";
+        return "";
+      }
+
+      case "message": {
+        if (!v) return "Message is required.";
+        if (v.length < 10) return "Message must be at least 10 characters.";
+        if (v.length > 5000) return "Message cannot exceed 5000 characters.";
+        return "";
+      }
+
+      default:
+        return "";
+    }
+  };
+
+  const validateAll = () => {
     const newErrors = {};
-
-    // Name validation
-    if (!formData.name.trim()) {
-      newErrors.name = "Full name is required";
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Name must be at least 2 characters";
-    } else if (formData.name.trim().length > 50) {
-      newErrors.name = "Name cannot exceed 50 characters";
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.name)) {
-      newErrors.name = "Name can only contain letters and spaces";
-    }
-
-    // Email validation
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        newErrors.email = "Please enter a valid email address";
-      }
-    }
-
-    // Phone validation (optional but if provided, must be valid)
-    if (formData.phone.trim()) {
-      const phoneRegex = /^[\d\s\-\+\(\)]{10,}$/;
-      if (!phoneRegex.test(formData.phone.replace(/\s/g, ""))) {
-        newErrors.phone = "Please enter a valid phone number (at least 10 digits)";
-      }
-    }
-
-    // Subject validation
-    if (!formData.subject.trim()) {
-      newErrors.subject = "Subject is required";
-    } else if (formData.subject.trim().length < 3) {
-      newErrors.subject = "Subject must be at least 3 characters";
-    } else if (formData.subject.trim().length > 100) {
-      newErrors.subject = "Subject cannot exceed 100 characters";
-    }
-
-    // Message validation
-    if (!formData.message.trim()) {
-      newErrors.message = "Message is required";
-    } else if (formData.message.trim().length < 10) {
-      newErrors.message = "Message must be at least 10 characters";
-    } else if (formData.message.trim().length > 5000) {
-      newErrors.message = "Message cannot exceed 5000 characters";
-    }
-
+    Object.keys(formData).forEach((field) => {
+      const err = validateField(field, formData[field]);
+      if (err) newErrors[field] = err;
+    });
     return newErrors;
   };
 
+  // ─── Handlers ───────────────────────────────────────────────────────────────
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
 
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
+    // Prevent numbers being typed into the name field
+    if (name === "name" && /\d/.test(value)) return;
 
-    // Clear success/error messages when user modifies form
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setSuccessMessage("");
     setErrorMessage("");
+
+    // Live validation once the field has been touched
+    if (touched[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: validateField(name, value),
+      }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, value),
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Clear previous messages
     setSuccessMessage("");
     setErrorMessage("");
 
-    // Validate form
-    const newErrors = validateForm();
+    // Mark all fields as touched so errors show
+    const allTouched = Object.keys(formData).reduce(
+      (acc, k) => ({ ...acc, [k]: true }),
+      {}
+    );
+    setTouched(allTouched);
+
+    const newErrors = validateAll();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -111,7 +148,7 @@ function ContactUs() {
     setErrors({});
 
     try {
-      const response = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/api/contact/send-mail`,
         {
           name: formData.name.trim(),
@@ -122,55 +159,52 @@ function ContactUs() {
         }
       );
 
-      // Success handling
       setSuccessMessage("Message sent successfully! We'll get back to you soon.");
       setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
-
-      // Auto-clear success message after 5 seconds
+      setTouched({});
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
       console.error("Error sending message:", error);
 
-      // Handle different error types
       if (error.response) {
-        // Backend returned an error response
-        const status = error.response.status;
-        const data = error.response.data;
-
-        if (status === 400) {
-          // Validation error from backend
-          if (data.errors && typeof data.errors === "object") {
-            setErrors(data.errors);
-            setErrorMessage("Please fix the errors below.");
-          } else if (data.message) {
-            setErrorMessage(data.message);
-          } else {
-            setErrorMessage("Invalid input. Please check your entries.");
-          }
-        } else if (status === 422) {
-          // Unprocessable entity
-          if (data.errors && typeof data.errors === "object") {
-            setErrors(data.errors);
-          }
-          setErrorMessage(data.message || "Failed to validate your message.");
-        } else if (status === 500) {
-          setErrorMessage("Server error. Please try again later.");
+        const { status, data } = error.response;
+        if ((status === 400 || status === 422) && data.errors && typeof data.errors === "object") {
+          setErrors(data.errors);
+          setErrorMessage(data.message || "Please fix the errors below.");
         } else if (status === 429) {
           setErrorMessage("Too many requests. Please wait a moment before trying again.");
+        } else if (status === 500) {
+          setErrorMessage("Server error. Please try again later.");
         } else {
           setErrorMessage(data.message || "Failed to send message. Please try again.");
         }
       } else if (error.request) {
-        // Request made but no response received
         setErrorMessage("No response from server. Please check your connection and try again.");
       } else {
-        // Error in request setup
-        setErrorMessage("An error occurred. Please try again.");
+        setErrorMessage("An unexpected error occurred. Please try again.");
       }
     } finally {
       setLoading(false);
     }
   };
+
+  // ─── Helper ─────────────────────────────────────────────────────────────────
+
+  const fieldClass = (fieldName) =>
+    `w-full border px-4 py-3 focus:outline-none focus:ring-2 transition ${
+      errors[fieldName] && touched[fieldName]
+        ? "border-red-400 focus:ring-red-300 bg-red-50"
+        : "border-gray-300 focus:ring-[#6c9055f5]"
+    }`;
+
+  const ErrorMsg = ({ field }) =>
+    errors[field] && touched[field] ? (
+      <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
+        <span className="font-bold">!</span> {errors[field]}
+      </p>
+    ) : null;
+
+  // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="bg-[#f7f9fc] text-gray-700 font-sans">
@@ -185,7 +219,9 @@ function ContactUs() {
           </p>
           <p className="text-[#6c9055f5] flex flex-col text-base md:text-lg mt-4">
             We're here to assist you with all your banking queries
-            <span>तुमच्या सर्व बँकिंग प्रश्नांमध्ये मदत करण्यासाठी आम्ही येथे आहोत.</span>
+            <span>
+              तुमच्या सर्व बँकिंग प्रश्नांमध्ये मदत करण्यासाठी आम्ही येथे आहोत.
+            </span>
           </p>
         </div>
       </div>
@@ -198,28 +234,30 @@ function ContactUs() {
             Contact Information
           </h2>
 
-          <div className="space-y-4">
-            <p className="flex items-start gap-2">
-              <span className="w-6 flex justify-center">
-                <FontAwesomeIcon icon={faLocationDot} className="text-base" />
-              </span>
-              <span>
+          <div className="space-y-4 text-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-5 mt-1 flex-shrink-0 text-gray-600">
+                <FontAwesomeIcon icon={faLocationDot} />
+              </div>
+              <p className="leading-relaxed">
                 Gandhi Ward, Manohar Chowk, Amgaon Road, Near Pratap Lawn, In
                 Front of Centure Bar, Gondia, Maharashtra – India
-              </span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="w-6 flex justify-center">
-                <FontAwesomeIcon icon={faPhone} className="text-base" />
-              </span>
-              <span>+91 8766081543</span>
-            </p>
-            <p className="flex items-start gap-2">
-              <span className="w-6 flex justify-center">
-                <FontAwesomeIcon icon={faEnvelope} className="text-base" />
-              </span>
-              <span>maaanusaya5@gmail.com</span>
-            </p>
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-5 flex-shrink-0 text-gray-600">
+                <FontAwesomeIcon icon={faPhone} />
+              </div>
+              <p>+91 8766081543</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-5 flex-shrink-0 text-gray-600">
+                <FontAwesomeIcon icon={faEnvelope} />
+              </div>
+              <p>maaanusaya5@gmail.com</p>
+            </div>
           </div>
 
           {/* Map */}
@@ -262,8 +300,8 @@ function ContactUs() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
-            {/* Name Field */}
+          <form onSubmit={handleSubmit} className="flex flex-col space-y-5" noValidate>
+            {/* Name */}
             <div>
               <input
                 type="text"
@@ -271,19 +309,15 @@ function ContactUs() {
                 placeholder="Full Name *"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full border px-4 py-3 focus:outline-none focus:ring-2 transition ${errors.name
-                    ? "border-red-400 focus:ring-red-300 bg-red-50"
-                    : "border-gray-300 focus:ring-[#6c9055f5]"
-                  }`}
+                onBlur={handleBlur}
+                maxLength={50}
+                autoComplete="name"
+                className={fieldClass("name")}
               />
-              {errors.name && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <span>!</span> {errors.name}
-                </p>
-              )}
+              <ErrorMsg field="name" />
             </div>
 
-            {/* Email Field */}
+            {/* Email */}
             <div>
               <input
                 type="email"
@@ -291,39 +325,37 @@ function ContactUs() {
                 placeholder="Email Address *"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full border px-4 py-3 focus:outline-none focus:ring-2 transition ${errors.email
-                    ? "border-red-400 focus:ring-red-300 bg-red-50"
-                    : "border-gray-300 focus:ring-[#6c9055f5]"
-                  }`}
+                onBlur={handleBlur}
+                maxLength={254}
+                autoComplete="email"
+                className={fieldClass("email")}
               />
-              {errors.email && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <span>!</span> {errors.email}
-                </p>
-              )}
+              <ErrorMsg field="email" />
             </div>
 
-            {/* Phone Field */}
+            {/* Phone */}
             <div>
               <input
                 type="tel"
                 name="phone"
-                placeholder="Phone Number (Optional)"
+                placeholder="Mobile Number (Optional)"
                 value={formData.phone}
                 onChange={handleChange}
-                className={`w-full border px-4 py-3 focus:outline-none focus:ring-2 transition ${errors.phone
-                    ? "border-red-400 focus:ring-red-300 bg-red-50"
-                    : "border-gray-300 focus:ring-[#6c9055f5]"
-                  }`}
+                onBlur={handleBlur}
+                maxLength={15}
+                autoComplete="tel"
+                className={fieldClass("phone")}
               />
-              {errors.phone && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <span>!</span> {errors.phone}
+              {/* Hint shown when not yet in error state */}
+              {!(errors.phone && touched.phone) && (
+                <p className="text-gray-400 text-xs mt-1">
+                  10-digit Indian mobile number (e.g. 9876543210)
                 </p>
               )}
+              <ErrorMsg field="phone" />
             </div>
 
-            {/* Subject Field */}
+            {/* Subject */}
             <div>
               <input
                 type="text"
@@ -331,19 +363,19 @@ function ContactUs() {
                 placeholder="Subject *"
                 value={formData.subject}
                 onChange={handleChange}
-                className={`w-full border px-4 py-3 focus:outline-none focus:ring-2 transition ${errors.subject
-                    ? "border-red-400 focus:ring-red-300 bg-red-50"
-                    : "border-gray-300 focus:ring-[#6c9055f5]"
-                  }`}
+                onBlur={handleBlur}
+                maxLength={100}
+                className={fieldClass("subject")}
               />
-              {errors.subject && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <span>!</span> {errors.subject}
+              <div className="flex justify-between items-start mt-1">
+                <ErrorMsg field="subject" />
+                <p className="text-gray-400 text-xs ml-auto">
+                  {formData.subject.length}/100
                 </p>
-              )}
+              </div>
             </div>
 
-            {/* Message Field */}
+            {/* Message */}
             <div>
               <textarea
                 name="message"
@@ -351,35 +383,63 @@ function ContactUs() {
                 rows="5"
                 value={formData.message}
                 onChange={handleChange}
-                className={`w-full border px-4 py-3 focus:outline-none focus:ring-2 transition resize-none ${errors.message
-                    ? "border-red-400 focus:ring-red-300 bg-red-50"
-                    : "border-gray-300 focus:ring-[#6c9055f5]"
-                  }`}
+                onBlur={handleBlur}
+                maxLength={5000}
+                className={`${fieldClass("message")} resize-none`}
               />
-              {errors.message && (
-                <p className="text-red-600 text-sm mt-1 flex items-center gap-1">
-                  <span>!</span> {errors.message}
+              <div className="flex justify-between items-start mt-1">
+                <ErrorMsg field="message" />
+                <p
+                  className={`text-xs ml-auto ${
+                    formData.message.length > 4800
+                      ? "text-red-500"
+                      : "text-gray-400"
+                  }`}
+                >
+                  {formData.message.length}/5000
                 </p>
-              )}
-              <p className="text-gray-500 text-xs mt-1">
-                {formData.message.length}/5000 characters
-              </p>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className={`px-6 py-3 text-white font-medium transition w-fit mx-auto rounded-md ${loading
+              className={`px-6 py-3 text-white font-medium transition w-fit mx-auto rounded-md ${
+                loading
                   ? "bg-gray-400 cursor-not-allowed opacity-60"
                   : "bg-[#6c9055f5] hover:bg-[#687b5b] active:scale-95"
-                }`}
+              }`}
             >
-              {loading ? "Sending..." : "Send Message"}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    />
+                  </svg>
+                  Sending...
+                </span>
+              ) : (
+                "Send Message"
+              )}
             </button>
 
-            <p className="text-gray-600 text-xs text-center">
-              * Required fields
-            </p>
+            <p className="text-gray-500 text-xs text-center">* Required fields</p>
           </form>
         </div>
       </div>

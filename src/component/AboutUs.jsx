@@ -46,7 +46,7 @@ const AboutUs = () => {
         {/* Left Content */}
         <div>
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            <span className="text-green-700">Maa Anusaya Urban</span>
+            <span className="text-green-700">Maa Anushaya Urban</span>
             <span className="block text-red-600 text-xl md:text-2xl mt-2">
               माँ अनुसया अर्बन
             </span>

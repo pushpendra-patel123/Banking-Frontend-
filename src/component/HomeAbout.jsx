@@ -29,7 +29,7 @@ const WelcomeSection = () => {
   return (
     <div className="max-w-4xl mx-auto px-10 py-10 text-center  ">
       <h2 className="text-2xl md:text-3xl font-bold text-red-600 mb-2">
-        Welcome To Maa Anusaya Urban
+        Welcome To Maa Anushaya Urban
       </h2>
       <p className="block text-lg md:text-xl font-semibold text-gray-700 mt-2">
         माँ अनुसया अर्बन को-ऑपरेटिव्ह बैंक  आपले हार्दिक स्वागत आहे!

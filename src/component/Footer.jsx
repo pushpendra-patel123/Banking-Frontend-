@@ -103,7 +103,7 @@ const Footer = () => {
       {/* Bottom Section */}
       <div className="bg-gray-900 text-gray-400 text-center py-4 text-sm">
         © {new Date().getFullYear()}{" "}
-        <span className="text-yellow-400 font-semibold">Anusaya Urban</span>. All
+        <span className="text-yellow-400 font-semibold">Anushaya Urban</span>. All
         rights reserved. |
         <span className="hover:text-yellow-400 cursor-pointer ml-2">
           Privacy Policy

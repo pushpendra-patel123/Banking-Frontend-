@@ -54,7 +54,7 @@ const OurSchemes = () => {
                   />
                   {/* Title Overlay */}
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4">
-                    <h3 className="text-xl font-semibold text-white text-left">
+                    <h3 className="text-xl font-semibold text-red-700 text-left">
                       {scheme.name}
                     </h3>
                   </div>
