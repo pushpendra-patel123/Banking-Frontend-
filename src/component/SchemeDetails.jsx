@@ -6,11 +6,11 @@ const SchemeDetails = () => {
   const [schemes, setSchemes] = useState({});
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
-  
-  // Mock ID for demo - replace with useParams() in real app
-  const {id} = useParams()
 
-   useEffect(() => {
+  // Mock ID for demo - replace with useParams() in real app
+  const { id } = useParams()
+
+  useEffect(() => {
     const fetchSchme = async () => {
       try {
         const res = await axios.get(
@@ -32,24 +32,24 @@ const SchemeDetails = () => {
 
   const handleDownloadPDF = async () => {
     if (!schemes?.pdf) return;
-    
+
     setDownloading(true);
     try {
       // Method 1: Simple download (opens in new tab)
       window.open(schemes.pdf, '_blank');
-      
+
       // Method 2: Force download with custom filename (uncomment if needed)
-      // const response = await fetch(schemes.pdf);
-      // const blob = await response.blob();
-      // const url = window.URL.createObjectURL(blob);
-      // const a = document.createElement('a');
-      // a.href = url;
-      // a.download = `${schemes.name}-Brochure.pdf`;
-      // document.body.appendChild(a);
-      // a.click();
-      // window.URL.revokeObjectURL(url);
-      // document.body.removeChild(a);
-      
+      const response = await fetch(schemes.pdf);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${schemes.name}-Brochure.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
     } catch (error) {
       console.error('Error downloading PDF:', error);
       alert('Error downloading PDF. Please try again.');
@@ -108,13 +108,12 @@ const SchemeDetails = () => {
                 </svg>
                 View Brochure
               </button>
-              
+
               <button
                 onClick={handleDownloadPDF}
                 disabled={downloading}
-                className={`flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md ${
-                  downloading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md ${downloading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
               >
                 {downloading ? (
                   <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
